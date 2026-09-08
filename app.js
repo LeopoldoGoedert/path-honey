@@ -535,6 +535,11 @@ const fieldImage=$('#fieldImage');
 fieldImage.addEventListener('error',()=>{if(!fieldImage.dataset.fallback){fieldImage.dataset.fallback='1';fieldImage.src='assets/bioglow-campo-web.jpg';toast('Carregando imagem alternativa do campo…')}else toast('A imagem do campo não pôde ser carregada.')});
 
 let deferredPrompt;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').classList.remove('hidden')});$('#installBtn').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('#installBtn').classList.add('hidden')}};
-if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+if('serviceWorker' in navigator) window.addEventListener('load',async()=>{
+  try{
+    const reg=await navigator.serviceWorker.register('sw.js');
+    await reg.update();
+  }catch{}
+});
 bindRobotConfig();
 renderAll();
