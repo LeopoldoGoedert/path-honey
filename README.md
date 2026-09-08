@@ -1,11 +1,10 @@
-# Path Honey v1.8.2 — deploy clean
+# Path Honey V1.8.3
 
-Versão de publicação em arquivo único.
+Versão clean para deploy no Vercel.
 
-Para GitHub/Vercel, mantenha na raiz apenas:
+Correção principal: barra superior do editor agora usa duas linhas com altura automática, evitando botões cortados ou sobrepostos em telas menores.
+
+Arquivos necessários no GitHub:
 - index.html
 - vercel.json
 - README.md
-
-O index.html já contém CSS, JavaScript e a imagem do campo BIOGLOW embutidos.
-Não usa service worker nem pasta assets, evitando cache antigo e arquivos faltantes.
