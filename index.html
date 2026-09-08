@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0b0b10" />
-  <title>Path Honey V2.0 — FLL BIOGLOW</title>
+  <title>Path Honey V2.1 — FLL BIOGLOW</title>
   
   <style>
 :root{
@@ -57,7 +57,7 @@ dialog{width:min(560px,92vw);border:1px solid var(--border);border-radius:16px;b
 
   
 /* Path Honey V2.0 */
-.tabs{grid-template-columns:repeat(5,1fr);height:49px}.tab{font-size:12px;padding:0 6px}
+.tabs{grid-template-columns:repeat(6,1fr);height:49px}.tab{font-size:12px;padding:0 6px}
 .obstacle-zone{fill:rgba(255,93,108,.14);stroke:var(--red);stroke-width:2;stroke-dasharray:8 6;vector-effect:non-scaling-stroke;pointer-events:none}
 .obstacle-label{font-size:13px!important;fill:#ffb5bd!important;stroke:#111!important;stroke-width:3!important}
 .collision-line{stroke:var(--red);stroke-width:9;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.88;filter:drop-shadow(0 0 5px rgba(255,93,108,.65))}
@@ -69,6 +69,16 @@ dialog{width:min(560px,92vw);border:1px solid var(--border);border-radius:16px;b
 .status-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:5px 8px;font-size:10px;color:var(--muted)}.status-pill.ok{border-color:#245b3b;color:#79e5a4}.status-pill.warn{border-color:#6b5620;color:#ffd84d}.status-pill.bad{border-color:#6b2c35;color:#ff9ba5}
 .collision-toolbar{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}.collision-help{padding:9px;border-radius:9px;background:#1b1710;border:1px solid #5e4d1e;color:#d9c77c;font-size:10px;line-height:1.45}
 
+
+/* V2.1 — estratégia, contornos e compartilhamento */
+.top-actions{flex-wrap:wrap;justify-content:flex-end}.top-actions .btn.compact{padding:7px 9px;font-size:11px}
+.polygon-zone{fill:rgba(255,93,108,.13);stroke:var(--red);stroke-width:2;stroke-dasharray:8 6;vector-effect:non-scaling-stroke;pointer-events:none}
+.polygon-draft{fill:rgba(139,92,246,.12);stroke:var(--purple);stroke-width:2;stroke-dasharray:6 5;vector-effect:non-scaling-stroke;pointer-events:none}
+.strategy-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.strategy-kpi{background:var(--panel2);border:1px solid var(--border);border-radius:11px;padding:10px}.strategy-kpi span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.05em}.strategy-kpi strong{display:block;font-size:18px;margin-top:3px}
+.strategy-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}.strategy-row{background:var(--panel2);border:1px solid var(--border);border-radius:11px;padding:9px}.strategy-row-head{display:flex;align-items:center;gap:8px}.strategy-row-head strong{font-size:11px;flex:1}.strategy-row-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}.strategy-row input[type=checkbox]{width:auto;margin:0}.strategy-note{border-left:3px solid var(--yellow);background:#17150d;border-radius:8px;padding:9px;font-size:11px;line-height:1.45;color:#d8d5c7;margin-top:10px}
+.attachment-state-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}.attachment-state-card{border:1px solid var(--border);background:var(--panel2);border-radius:10px;padding:9px}.attachment-state-card h4{margin:0 0 5px;font-size:11px}.segment-state-list{display:flex;flex-direction:column;gap:6px}.segment-state-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center;background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:7px}.segment-state-row span{font-size:10px;color:var(--muted)}
+.project-actions{display:flex;gap:6px;align-items:center}.share-badge{font-size:10px;color:var(--green)}
+
 </style>
 </head>
 <body>
@@ -77,11 +87,17 @@ dialog{width:min(560px,92vw);border:1px solid var(--border);border-radius:16px;b
       <div class="bee">⬡</div>
       <div>
         <h1>Path Honey</h1>
-        <p>Planejador de rotas • FLL BIOGLOW <span style="opacity:.55">v2.0</span></p>
+        <p>Planejador de rotas • FLL BIOGLOW <span style="opacity:.55">v2.1</span></p>
       </div>
     </div>
     <div class="top-actions">
       <span id="saveState" class="save-state">salvo localmente</span>
+      <div class="project-actions">
+        <button id="saveProjectBtn" class="btn ghost compact" type="button">💾 Salvar projeto</button>
+        <button id="openProjectBtn" class="btn ghost compact" type="button">📂 Abrir</button>
+        <button id="shareProjectBtn" class="btn ghost compact" type="button">🔗 Compartilhar</button>
+        <input id="openProjectInput" class="hidden" type="file" accept="application/json,.json" />
+      </div>
       <button id="installBtn" class="btn ghost hidden">Instalar app</button>
       <button id="newLaunchBtn" class="btn primary">+ Novo lançamento</button>
     </div>
@@ -166,6 +182,7 @@ dialog{width:min(560px,92vw);border:1px solid var(--border);border-radius:16px;b
               <polyline id="routeLine" points="" />
               <g id="collisionLayer"></g>
               <g id="obstacleLayer"></g>
+              <g id="obstacleDraftLayer"></g>
               <g id="segmentLayer"></g>
               <g id="pointLayer"></g>
               <g id="robotLayer" class="robot-layer" aria-hidden="true">
@@ -203,6 +220,7 @@ dialog{width:min(560px,92vw);border:1px solid var(--border);border-radius:16px;b
         <button class="tab" data-tab="robot">Robô</button>
         <button class="tab" data-tab="attachment">Anexo</button>
         <button class="tab" data-tab="collision">Colisão</button>
+        <button class="tab" data-tab="strategy">Estratégia</button>
       </div>
 
       <section id="actionsTab" class="tab-content active">
@@ -293,6 +311,15 @@ dialog{width:min(560px,92vw);border:1px solid var(--border);border-radius:16px;b
           <img id="attachmentImagePreview" class="upload-preview empty" alt="Vista superior do anexo" />
           <button id="clearAttachmentImageBtn" class="btn ghost" type="button">Remover foto</button>
         </div>
+        <div class="robot-config-group">
+          <h3>Estados do anexo</h3>
+          <p class="hint">Defina o envelope de colisão do anexo em cada estado. O mesmo anexo pode estar recolhido em um trecho e estendido no seguinte.</p>
+          <div id="attachmentStateCards" class="attachment-state-list"></div>
+        </div>
+        <div class="robot-config-group">
+          <h3>Estado por trecho</h3>
+          <div id="segmentAttachmentStates" class="segment-state-list"></div>
+        </div>
       </section>
 
       <section id="collisionTab" class="tab-content">
@@ -300,11 +327,21 @@ dialog{width:min(560px,92vw);border:1px solid var(--border);border-radius:16px;b
         <div class="robot-config-group">
           <div class="grid-2"><label>Margem de segurança (mm)<input id="collisionMargin" type="number" min="0" max="300" step="5" /></label><label>Aviso adicional (mm)<input id="collisionWarning" type="number" min="0" max="300" step="5" /></label></div>
           <label><input id="collisionEnabled" type="checkbox" style="width:auto;margin-right:6px"> Ativar alerta de colisão</label>
-          <div class="collision-toolbar"><button id="markMissionBtn" class="btn primary" type="button">＋ Marcar missão no campo</button><button id="clearMissionsBtn" class="btn ghost" type="button">Limpar zonas</button></div>
-          <div id="missionMarkHelp" class="collision-help hidden">Clique em dois cantos opostos do modelo/área da missão no tapete. Depois informe o nome.</div>
+          <div class="collision-toolbar"><button id="markMissionBtn" class="btn primary" type="button">✎ Desenhar contorno</button><button id="finishMissionBtn" class="btn accent hidden" type="button">Fechar contorno</button><button id="cancelMissionBtn" class="btn ghost hidden" type="button">Cancelar</button><button id="clearMissionsBtn" class="btn ghost" type="button">Limpar zonas</button></div>
+          <div id="missionMarkHelp" class="collision-help hidden">Clique ao redor do modelo da missão para criar vértices. Use “Fechar contorno” quando terminar.</div>
           <div id="missionList" class="mission-list"></div>
         </div>
         <div class="robot-config-group"><h3>Alertas</h3><div id="collisionAlerts" class="alert-list"></div></div>
+      </section>
+
+      <section id="strategyTab" class="tab-content">
+        <div class="robot-config-head"><h2>Estratégia do lançamento</h2><p class="hint">Planeje a pontuação da BIOGLOW, confiabilidade e eficiência deste lançamento. O índice é heurístico e serve para comparar opções — não é pontuação oficial.</p></div>
+        <div id="strategySummary" class="strategy-summary"></div>
+        <div id="strategyNote" class="strategy-note"></div>
+        <div class="robot-config-group">
+          <h3>Missões planejadas</h3>
+          <div id="strategyMissionList" class="strategy-list"></div>
+        </div>
       </section>
     </aside>
   </main>
@@ -332,9 +369,15 @@ dialog{width:min(560px,92vw);border:1px solid var(--border);border-radius:16px;b
   <script>
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
-const STORAGE_KEY = 'path-honey-v2';
+const STORAGE_KEY = 'path-honey-v2-1';
 const LEGACY_STORAGE_KEY = 'path-honey-v1';
 const DEFAULT_WHEEL_DIAMETER_MM = 62.2;
+const MISSION_CATALOG=[
+  ['M01','Levantamento com Drone'],['M02','Sementes Explosivas'],['M03','Vire a Rocha'],['M04','Folhas da Sorte'],['M05','Raízes que se estendem'],
+  ['M06','Formigas Cortadeiras'],['M07','Fungo Gigante'],['M08','Emaranhado'],['M09','Plataforma de Pesquisa'],['M10','Micro-habitats Sensíveis'],
+  ['M11','Janela para o Passado'],['M12','Ancião da Floresta'],['M13','Espécies-chave'],['M14','Sementes da Renovação'],['M15','Arquitetura Biocêntrica']
+].map(([id,name])=>({id,name}));
+const ATTACHMENT_STATE_NAMES=['recolhido','aberto','estendido'];
 
 const functionLibrary = `from hub import light_matrix, motion_sensor, port
 import hub
@@ -494,7 +537,7 @@ function defaultState(){
     collisionConfig:{enabled:true,marginMm:25,warningMm:35},obstacles:[],
     launches: presets.map((p,i)=>({
       id:`launch-${i+1}`,name:p.name,side:p.side,heading:0,points:[],
-      actions:p.actions.map(actionFromArray),manualActions:[],autoOverrides:{},attachment:{name:'',enabled:false,widthMm:0,lengthMm:0,offsetXmm:0,offsetYmm:0,imageData:''}
+      actions:p.actions.map(actionFromArray),manualActions:[],autoOverrides:{},attachment:{name:'',enabled:false,widthMm:0,lengthMm:0,offsetXmm:0,offsetYmm:0,imageData:'',defaultState:'estendido',states:{},segmentStates:{}},strategy:{missions:{}}
     }))
   };
 }
@@ -511,7 +554,14 @@ delete state.calibration.robotLengthMm;
 state.zoom = Number(state.zoom)||1;
 state.launches ||= [];
 state.collisionConfig={enabled:true,marginMm:25,warningMm:35,...(state.collisionConfig||{})};state.obstacles ||= [];state.robotConfig.baseImageData ||= '';
-state.launches.forEach(l=>{ l.points ||= []; l.actions ||= []; l.manualActions ||= []; l.autoOverrides ||= {}; l.attachment={name:'',enabled:false,widthMm:0,lengthMm:0,offsetXmm:0,offsetYmm:0,imageData:'',...(l.attachment||{})}; });
+state.obstacles=(state.obstacles||[]).map(o=>{if(o.points?.length)return o;if(Number.isFinite(o.x)&&Number.isFinite(o.y)&&Number.isFinite(o.w)&&Number.isFinite(o.h))return {...o,points:[{x:o.x,y:o.y},{x:o.x+o.w,y:o.y},{x:o.x+o.w,y:o.y+o.h},{x:o.x,y:o.y+o.h}]};return o;});
+state.launches.forEach(l=>{
+  l.points ||= []; l.actions ||= []; l.manualActions ||= []; l.autoOverrides ||= {};
+  l.attachment={name:'',enabled:false,widthMm:0,lengthMm:0,offsetXmm:0,offsetYmm:0,imageData:'',defaultState:'estendido',states:{},segmentStates:{},...(l.attachment||{})};
+  l.attachment.states ||= {}; l.attachment.segmentStates ||= {};
+  ATTACHMENT_STATE_NAMES.forEach((s,i)=>{if(!l.attachment.states[s]){const factor=s==='recolhido'?.35:s==='aberto'?.7:1;l.attachment.states[s]={enabled:s!=='recolhido',widthMm:(Number(l.attachment.widthMm)||0)*factor,lengthMm:(Number(l.attachment.lengthMm)||0)*factor,offsetXmm:Number(l.attachment.offsetXmm)||0,offsetYmm:Number(l.attachment.offsetYmm)||0};}});
+  l.strategy={missions:{},...(l.strategy||{})}; l.strategy.missions ||= {};
+});
 
 const els={
   launchList:$('#launchList'),launchName:$('#launchName'),startSide:$('#startSide'),startHeading:$('#startHeading'),
@@ -524,9 +574,10 @@ const els={
   actionList:$('#actionList'),code:$('#codePreview'),distance:$('#distanceMetric'),actions:$('#actionsMetric'),time:$('#timeMetric'),margin:$('#marginMetric'),
   save:$('#saveState'),coords:$('#cursorCoords'),dialog:$('#actionDialog'),dialogFields:$('#dialogFields'),dialogTitle:$('#dialogTitle'),dialogSubtitle:$('#dialogSubtitle'),
   zoomLabel:$('#zoomLabel'),simulateBtn:$('#simulateBtn'),
-  obstacleLayer:$('#obstacleLayer'),collisionLayer:$('#collisionLayer'),collisionStatus:$('#collisionStatus'),collisionAlerts:$('#collisionAlerts'),missionList:$('#missionList'),
+  obstacleLayer:$('#obstacleLayer'),obstacleDraftLayer:$('#obstacleDraftLayer'),collisionLayer:$('#collisionLayer'),collisionStatus:$('#collisionStatus'),collisionAlerts:$('#collisionAlerts'),missionList:$('#missionList'),
   attachmentName:$('#attachmentName'),attachmentWidth:$('#attachmentWidth'),attachmentLength:$('#attachmentLength'),attachmentOffsetX:$('#attachmentOffsetX'),attachmentOffsetY:$('#attachmentOffsetY'),attachmentEnabled:$('#attachmentEnabled'),
-  robotBaseImage:$('#robotBaseImage'),robotAttachmentImage:$('#robotAttachmentImage'),attachmentOutline:$('#attachmentOutline')
+  robotBaseImage:$('#robotBaseImage'),robotAttachmentImage:$('#robotAttachmentImage'),attachmentOutline:$('#attachmentOutline'),
+  attachmentStateCards:$('#attachmentStateCards'),segmentAttachmentStates:$('#segmentAttachmentStates'),strategyMissionList:$('#strategyMissionList'),strategySummary:$('#strategySummary'),strategyNote:$('#strategyNote')
 };
 function active(){return state.launches.find(x=>x.id===state.activeId) || state.launches[0];}
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));els.save.textContent='salvo localmente';renderAll();}
@@ -536,6 +587,13 @@ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 function clamp(n,a,b){return Math.max(a,Math.min(b,n));}
 function normAngle(d){while(d>180)d-=360;while(d<-180)d+=360;return d;}
 function num(v){const n=Number(v);return Number.isFinite(n)?String(Math.round(n*100)/100):'0'}
+function cloneForShare(){const c=JSON.parse(JSON.stringify(state));if(c.robotConfig)c.robotConfig.baseImageData='';(c.launches||[]).forEach(l=>{if(l.attachment)l.attachment.imageData=''});return c;}
+function exportProject(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='path-honey-projeto.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
+function encodeShareState(obj){const s=encodeURIComponent(JSON.stringify(obj));return btoa(unescape(s));}
+function decodeShareState(s){return JSON.parse(decodeURIComponent(escape(atob(s))));}
+async function shareProject(){const payload=encodeShareState(cloneForShare());const url=location.href.split('#')[0]+'#share='+payload;try{await navigator.clipboard.writeText(url);toast('Link do projeto copiado. Fotos não são incluídas no link.')}catch{prompt('Copie este link:',url)}}
+function applyImportedState(obj){if(!obj||!Array.isArray(obj.launches))throw new Error('Projeto inválido');state=obj;localStorage.setItem(STORAGE_KEY,JSON.stringify(state));location.reload();}
+
 
 function routeSegments(launch=active()){
   const pts=launch.points||[]; const segs=[]; let heading=Number(launch.heading)||0;
@@ -591,53 +649,83 @@ function applyAutoOverride(base,launch=active()){
 
 
 function activeAttachment(){return active().attachment||{};}
-function obstacleRectSvg(o){return {x:o.x*1000,y:o.y*500,w:o.w*1000,h:o.h*500};}
+function obstaclePoints(o){return (o.points||[]).map(p=>({x:p.x*state.calibration.widthMm,y:p.y*state.calibration.heightMm}));}
+function obstacleSvgPoints(o){return (o.points||[]).map(p=>`${p.x*1000},${p.y*500}`).join(' ');}
 function renderObstacles(){
   if(!els.obstacleLayer)return;
-  els.obstacleLayer.innerHTML=(state.obstacles||[]).map(o=>{const r=obstacleRectSvg(o);return `<g><rect class="obstacle-zone" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="6"></rect><text class="obstacle-label" x="${r.x+6}" y="${r.y+18}">${esc(o.name||'Missão')}</text></g>`}).join('');
+  els.obstacleLayer.innerHTML=(state.obstacles||[]).map(o=>`<g><polygon class="polygon-zone" points="${obstacleSvgPoints(o)}"></polygon><text class="obstacle-label" x="${((o.points?.[0]?.x)||0)*1000+6}" y="${((o.points?.[0]?.y)||0)*500+18}">${esc(o.name||'Missão')}</text></g>`).join('');
+  if(els.obstacleDraftLayer)els.obstacleDraftLayer.innerHTML=obstacleDraftPoints.length?`<polyline class="polygon-draft" points="${obstacleDraftPoints.map(p=>`${p.x*1000},${p.y*500}`).join(' ')}"></polyline>`:'';
 }
-function footprintLocal(){
+function attachmentStateForSegment(segIndex,launch=active()){
+  const a=launch.attachment||{};const name=(a.segmentStates||{})[String(segIndex)]||a.defaultState||'estendido';const st=(a.states||{})[name]||{};return {name,...st};
+}
+function footprintLocal(segIndex=null){
   const r=state.robotConfig,a=activeAttachment();
   let minX=-r.widthMm/2,maxX=r.widthMm/2,minY=-r.lengthMm/2,maxY=r.lengthMm/2;
-  if(a.enabled && Number(a.widthMm)>0 && Number(a.lengthMm)>0){
-    minX=Math.min(minX,Number(a.offsetXmm)-Number(a.widthMm)/2);maxX=Math.max(maxX,Number(a.offsetXmm)+Number(a.widthMm)/2);
-    minY=Math.min(minY,Number(a.offsetYmm)-Number(a.lengthMm)/2);maxY=Math.max(maxY,Number(a.offsetYmm)+Number(a.lengthMm)/2);
+  if(a.enabled){
+    const st=attachmentStateForSegment(segIndex??0);const aw=Number(st.widthMm)||0,al=Number(st.lengthMm)||0,ox=Number(st.offsetXmm)||0,oy=Number(st.offsetYmm)||0;
+    if(st.enabled!==false&&aw>0&&al>0){minX=Math.min(minX,ox-aw/2);maxX=Math.max(maxX,ox+aw/2);minY=Math.min(minY,oy-al/2);maxY=Math.max(maxY,oy+al/2);}
   }
   return {minX,maxX,minY,maxY,w:maxX-minX,h:maxY-minY,cx:(minX+maxX)/2,cy:(minY+maxY)/2};
 }
-function orientedCorners(p,heading,expand=0){
-  const f=footprintLocal();const minX=f.minX-expand,maxX=f.maxX+expand,minY=f.minY-expand,maxY=f.maxY+expand;
+function orientedCorners(p,heading,expand=0,segIndex=null){
+  const f=footprintLocal(segIndex);const minX=f.minX-expand,maxX=f.maxX+expand,minY=f.minY-expand,maxY=f.maxY+expand;
   const th=(heading+90)*Math.PI/180,c=Math.cos(th),s=Math.sin(th),cx=p.x*state.calibration.widthMm,cy=p.y*state.calibration.heightMm;
   return [[minX,minY],[maxX,minY],[maxX,maxY],[minX,maxY]].map(([x,y])=>({x:cx+x*c-y*s,y:cy+x*s+y*c}));
 }
-function rectCorners(o){const x=o.x*state.calibration.widthMm,y=o.y*state.calibration.heightMm,w=o.w*state.calibration.widthMm,h=o.h*state.calibration.heightMm;return [{x,y},{x:x+w,y},{x:x+w,y:y+h},{x,y:y+h}];}
 function projectPoly(poly,axis){let mn=Infinity,mx=-Infinity;poly.forEach(p=>{const v=p.x*axis.x+p.y*axis.y;mn=Math.min(mn,v);mx=Math.max(mx,v)});return [mn,mx];}
-function polyIntersect(a,b){const axes=[];[a,b].forEach(poly=>{for(let i=0;i<poly.length;i++){const p=poly[i],q=poly[(i+1)%poly.length],dx=q.x-p.x,dy=q.y-p.y,len=Math.hypot(dx,dy)||1;axes.push({x:-dy/len,y:dx/len})}});return axes.every(ax=>{const A=projectPoly(a,ax),B=projectPoly(b,ax);return !(A[1]<B[0]||B[1]<A[0])});}
-function poseRisk(p,heading){
+function polyIntersect(a,b){if(a.length<3||b.length<3)return false;const axes=[];[a,b].forEach(poly=>{for(let i=0;i<poly.length;i++){const p=poly[i],q=poly[(i+1)%poly.length],dx=q.x-p.x,dy=q.y-p.y,len=Math.hypot(dx,dy)||1;axes.push({x:-dy/len,y:dx/len})}});return axes.every(ax=>{const A=projectPoly(a,ax),B=projectPoly(b,ax);return !(A[1]<B[0]||B[1]<A[0])});}
+function poseRisk(p,heading,segIndex=null){
   if(!state.collisionConfig.enabled)return null;let best=null;
   for(const o of state.obstacles||[]){
-    const target=rectCorners(o);const body=orientedCorners(p,heading,0);const safe=orientedCorners(p,heading,Number(state.collisionConfig.marginMm)||0);const warn=orientedCorners(p,heading,(Number(state.collisionConfig.marginMm)||0)+(Number(state.collisionConfig.warningMm)||0));
-    let level=null;if(polyIntersect(body,target))level='high';else if(polyIntersect(safe,target))level='high';else if(polyIntersect(warn,target))level='warn';
-    if(level && (!best || best.level==='warn'&&level==='high'))best={level,obstacle:o};
-  }
-  return best;
+    const target=obstaclePoints(o);const body=orientedCorners(p,heading,0,segIndex);const safe=orientedCorners(p,heading,Number(state.collisionConfig.marginMm)||0,segIndex);const warn=orientedCorners(p,heading,(Number(state.collisionConfig.marginMm)||0)+(Number(state.collisionConfig.warningMm)||0),segIndex);
+    let level=null;if(polyIntersect(body,target)||polyIntersect(safe,target))level='high';else if(polyIntersect(warn,target))level='warn';
+    if(level&&(!best||best.level==='warn'&&level==='high'))best={level,obstacle:o};
+  }return best;
 }
 function collisionAnalysis(){
   const alerts=[],segs=routeSegments();
   segs.forEach(seg=>{
-    const steps=Math.max(2,Math.ceil(seg.mm/25));let worst=null;
-    for(let i=0;i<=steps;i++){const t=i/steps,p={x:seg.a.x+(seg.b.x-seg.a.x)*t,y:seg.a.y+(seg.b.y-seg.a.y)*t};const risk=poseRisk(p,seg.target);if(risk && (!worst||worst.level==='warn'&&risk.level==='high'))worst=risk;}
-    if(worst)alerts.push({segment:seg.index,level:worst.level,obstacle:worst.obstacle});
+    let worst=null;
+    const turnSteps=Math.max(1,Math.ceil(Math.abs(seg.delta)/12));
+    for(let i=0;i<=turnSteps;i++){
+      const h=seg.headingBefore+seg.delta*(i/turnSteps),risk=poseRisk(seg.a,h,seg.index);
+      if(risk&&(!worst||worst.level==='warn'&&risk.level==='high'))worst=risk;
+    }
+    const steps=Math.max(2,Math.ceil(seg.mm/25));
+    for(let i=0;i<=steps;i++){
+      const t=i/steps,p={x:seg.a.x+(seg.b.x-seg.a.x)*t,y:seg.a.y+(seg.b.y-seg.a.y)*t};
+      const risk=poseRisk(p,seg.target,seg.index);
+      if(risk&&(!worst||worst.level==='warn'&&risk.level==='high'))worst=risk;
+    }
+    if(worst)alerts.push({segment:seg.index,level:worst.level,obstacle:worst.obstacle,state:attachmentStateForSegment(seg.index).name});
   });return alerts;
 }
 function renderCollision(){
   const alerts=collisionAnalysis();const map=new Map(alerts.map(a=>[a.segment,a]));
   els.collisionLayer.innerHTML=routeSegments().map(seg=>{const a=map.get(seg.index);if(!a)return '';const A=pointToSvg(seg.a),B=pointToSvg(seg.b);return `<line class="${a.level==='high'?'collision-line':'warning-line'}" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"></line>`}).join('');
   if(els.collisionStatus){const hi=alerts.filter(a=>a.level==='high').length;els.collisionStatus.className='status-pill '+(hi?'bad':alerts.length?'warn':'ok');els.collisionStatus.textContent=hi?`⚠ ${hi} colisão(ões)`:alerts.length?`! ${alerts.length} atenção`:'✓ sem colisões';}
-  if(els.collisionAlerts)els.collisionAlerts.innerHTML=alerts.length?alerts.map(a=>`<div class="collision-alert ${a.level==='high'?'high':''}"><strong>Trecho ${a.segment} — ${a.level==='high'?'Risco alto':'Atenção'}</strong><span>${esc(a.obstacle.name||'Missão')} • área de segurança do robô/anexo intercepta a zona marcada.</span></div>`).join(''):'<p class="hint">Nenhum alerta na rota atual.</p>';
+  if(els.collisionAlerts)els.collisionAlerts.innerHTML=alerts.length?alerts.map(a=>`<div class="collision-alert ${a.level==='high'?'high':''}"><strong>Trecho ${a.segment} — ${a.level==='high'?'Risco alto':'Atenção'}</strong><span>${esc(a.obstacle.name||'Missão')} • anexo ${esc(a.state)} • envelope de segurança intercepta o contorno.</span></div>`).join(''):'<p class="hint">Nenhum alerta na rota atual.</p>';
 }
-function renderMissionList(){if(!els.missionList)return;els.missionList.innerHTML=(state.obstacles||[]).map((o,i)=>`<div class="mission-row"><div><strong>${esc(o.name||'Missão')}</strong><span>${Math.round(o.w*state.calibration.widthMm)} × ${Math.round(o.h*state.calibration.heightMm)} mm</span></div><button class="icon-btn" data-del-obstacle="${i}" type="button">✕</button></div>`).join('')||'<p class="hint">Nenhuma zona marcada. Use “Marcar missão no campo”.</p>';$$('[data-del-obstacle]').forEach(b=>b.onclick=()=>{state.obstacles.splice(+b.dataset.delObstacle,1);dirty()});}
-function renderAttachmentConfig(){const a=activeAttachment();if(!els.attachmentName)return;els.attachmentName.value=a.name||'';els.attachmentWidth.value=a.widthMm||0;els.attachmentLength.value=a.lengthMm||0;els.attachmentOffsetX.value=a.offsetXmm||0;els.attachmentOffsetY.value=a.offsetYmm||0;els.attachmentEnabled.checked=!!a.enabled;const p=$('#attachmentImagePreview');if(p){p.src=a.imageData||'';p.classList.toggle('empty',!a.imageData)}const rp=$('#robotImagePreview');if(rp){rp.src=state.robotConfig.baseImageData||'';rp.classList.toggle('empty',!state.robotConfig.baseImageData)}const cm=$('#collisionMargin'),cw=$('#collisionWarning'),ce=$('#collisionEnabled');if(cm)cm.value=state.collisionConfig.marginMm;if(cw)cw.value=state.collisionConfig.warningMm;if(ce)ce.checked=!!state.collisionConfig.enabled}
+function polygonSizeMm(o){const pts=obstaclePoints(o);if(!pts.length)return {w:0,h:0};const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);return {w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys)};}
+function renderMissionList(){if(!els.missionList)return;els.missionList.innerHTML=(state.obstacles||[]).map((o,i)=>{const s=polygonSizeMm(o);return `<div class="mission-row"><div><strong>${esc(o.name||'Missão')}</strong><span>${o.points?.length||0} vértices • caixa ${Math.round(s.w)} × ${Math.round(s.h)} mm</span></div><button class="icon-btn" data-del-obstacle="${i}" type="button">✕</button></div>`}).join('')||'<p class="hint">Nenhum contorno marcado. Use “Desenhar contorno”.</p>';$$('[data-del-obstacle]').forEach(b=>b.onclick=()=>{state.obstacles.splice(+b.dataset.delObstacle,1);dirty()});}
+function renderAttachmentConfig(){const a=activeAttachment();if(!els.attachmentName)return;els.attachmentName.value=a.name||'';els.attachmentWidth.value=a.widthMm||0;els.attachmentLength.value=a.lengthMm||0;els.attachmentOffsetX.value=a.offsetXmm||0;els.attachmentOffsetY.value=a.offsetYmm||0;els.attachmentEnabled.checked=!!a.enabled;const p=$('#attachmentImagePreview');if(p){p.src=a.imageData||'';p.classList.toggle('empty',!a.imageData)}const rp=$('#robotImagePreview');if(rp){rp.src=state.robotConfig.baseImageData||'';rp.classList.toggle('empty',!state.robotConfig.baseImageData)}const cm=$('#collisionMargin'),cw=$('#collisionWarning'),ce=$('#collisionEnabled');if(cm)cm.value=state.collisionConfig.marginMm;if(cw)cw.value=state.collisionConfig.warningMm;if(ce)ce.checked=!!state.collisionConfig.enabled;renderAttachmentStates();}
+function renderAttachmentStates(){
+  if(!els.attachmentStateCards||!els.segmentAttachmentStates)return;const a=activeAttachment();
+  els.attachmentStateCards.innerHTML=ATTACHMENT_STATE_NAMES.map(name=>{const s=a.states[name]||{};return `<div class="attachment-state-card" data-state="${name}"><h4>${name.toUpperCase()}</h4><label><input class="att-state-enabled" type="checkbox" style="width:auto" ${s.enabled!==false?'checked':''}> usar no envelope</label><div class="grid-2"><label>Largura<input class="att-state-width" type="number" value="${num(s.widthMm)}"></label><label>Comprimento<input class="att-state-length" type="number" value="${num(s.lengthMm)}"></label><label>Offset X<input class="att-state-x" type="number" value="${num(s.offsetXmm)}"></label><label>Offset Y<input class="att-state-y" type="number" value="${num(s.offsetYmm)}"></label></div></div>`}).join('');
+  $$('.attachment-state-card').forEach(card=>{const n=card.dataset.state,s=a.states[n];card.querySelector('.att-state-enabled').onchange=e=>{s.enabled=e.target.checked;dirty()};card.querySelector('.att-state-width').oninput=e=>{s.widthMm=Number(e.target.value)||0;dirty()};card.querySelector('.att-state-length').oninput=e=>{s.lengthMm=Number(e.target.value)||0;dirty()};card.querySelector('.att-state-x').oninput=e=>{s.offsetXmm=Number(e.target.value)||0;dirty()};card.querySelector('.att-state-y').oninput=e=>{s.offsetYmm=Number(e.target.value)||0;dirty()};});
+  const segs=routeSegments();els.segmentAttachmentStates.innerHTML=segs.length?segs.map(seg=>`<div class="segment-state-row"><span>Trecho ${seg.index}</span><select data-seg-state="${seg.index}">${ATTACHMENT_STATE_NAMES.map(n=>`<option value="${n}" ${attachmentStateForSegment(seg.index).name===n?'selected':''}>${n}</option>`).join('')}</select></div>`).join(''):'<p class="hint">Crie uma rota para definir estados por trecho.</p>';
+  $$('[data-seg-state]').forEach(s=>s.onchange=e=>{a.segmentStates[e.target.dataset.segState]=e.target.value;dirty()});
+}
+function strategyData(launch=active()){launch.strategy={missions:{},...(launch.strategy||{})};launch.strategy.missions||={};return launch.strategy.missions;}
+function strategyMetrics(){const m=strategyData(),alerts=collisionAnalysis(),t=totalTime();let target=0,expected=0;MISSION_CATALOG.forEach(x=>{const d=m[x.id];if(d?.enabled){const pts=Number(d.points)||0,rel=clamp(Number(d.reliability)||0,0,100)/100;target+=pts;expected+=pts*rel;}});const hi=alerts.filter(a=>a.level==='high').length,warn=alerts.length-hi;const riskFactor=Math.pow(.82,hi)*Math.pow(.95,warn);const efficiency=t>0?(expected/t)*riskFactor:0;return {target,expected,t,hi,warn,riskFactor,efficiency};}
+function renderStrategy(){
+  if(!els.strategyMissionList)return;const m=strategyData(),k=strategyMetrics();
+  els.strategySummary.innerHTML=`<div class="strategy-kpi"><span>Pontuação alvo</span><strong>${Math.round(k.target)}</strong></div><div class="strategy-kpi"><span>Esperada</span><strong>${k.expected.toFixed(1)}</strong></div><div class="strategy-kpi"><span>Tempo</span><strong>${k.t.toFixed(1)} s</strong></div><div class="strategy-kpi"><span>Índice heurístico</span><strong>${k.efficiency.toFixed(2)}</strong></div>`;
+  let note='Estratégia equilibrada para teste.';if(k.hi)note=`Prioridade: eliminar ${k.hi} risco(s) alto(s) antes de buscar mais pontos.`;else if(k.t>150)note=`Tempo estimado excede 150 s em ${(k.t-150).toFixed(1)} s.`;else if(k.expected<k.target*.7&&k.target>0)note='A confiabilidade média está baixa. Considere simplificar o lançamento.';else if(k.target>0)note=`Margem de tempo ${(150-k.t).toFixed(1)} s • fator de risco ${(k.riskFactor*100).toFixed(0)}%.`;els.strategyNote.textContent=note;
+  els.strategyMissionList.innerHTML=MISSION_CATALOG.map(x=>{const d=m[x.id]||{enabled:false,points:0,reliability:80};return `<div class="strategy-row" data-mission="${x.id}"><div class="strategy-row-head"><input class="st-enabled" type="checkbox" ${d.enabled?'checked':''}><strong>${x.id} — ${x.name}</strong></div><div class="strategy-row-grid"><label>Pontos planejados<input class="st-points" type="number" min="0" value="${num(d.points)}"></label><label>Confiabilidade %<input class="st-rel" type="number" min="0" max="100" value="${num(d.reliability??80)}"></label></div></div>`}).join('');
+  $$('.strategy-row').forEach(r=>{const id=r.dataset.mission;m[id]||={enabled:false,points:0,reliability:80};r.querySelector('.st-enabled').onchange=e=>{m[id].enabled=e.target.checked;dirty()};r.querySelector('.st-points').oninput=e=>{m[id].points=Number(e.target.value)||0;dirty()};r.querySelector('.st-rel').oninput=e=>{m[id].reliability=clamp(Number(e.target.value)||0,0,100);dirty()};});
+}
 function compressImage(file,max=700,quality=.82){return new Promise((resolve,reject)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{const s=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*s));c.height=Math.max(1,Math.round(img.height*s));c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);resolve(c.toDataURL('image/jpeg',quality))};img.onerror=reject;img.src=url})}
 
 function renderLaunches(){
@@ -758,7 +846,7 @@ function bindRobotConfig(){
   $('#resetRobotConfigBtn').onclick=()=>{if(confirm('Restaurar as configurações padrão do robô?')){state.robotConfig={...ROBOT_DEFAULTS};dirty();toast('Configuração do robô restaurada.')}};
 }
 
-function renderAll(){if(!state.launches.length)state=defaultState();renderLaunches();renderConfig();renderRobotConfig();renderRoute();renderManualAnchor();renderActions();renderCode();renderMetrics();setMode(state.mode||'route',false);applyZoom();}
+function renderAll(){if(!state.launches.length)state=defaultState();renderLaunches();renderConfig();renderRobotConfig();renderAttachmentConfig();renderMissionList();renderRoute();renderManualAnchor();renderActions();renderCode();renderMetrics();renderStrategy();setMode(state.mode||'route',false);applyZoom();}
 
 function eventNorm(e){const r=els.fieldCanvas.getBoundingClientRect();return {x:clamp((e.clientX-r.left)/r.width,0,1),y:clamp((e.clientY-r.top)/r.height,0,1)}}
 function nearestSegmentPoint(p){
@@ -808,7 +896,7 @@ els.startSide.onchange=e=>{active().side=e.target.value;dirty()};
 els.startHeading.oninput=e=>{active().heading=+e.target.value||0;dirty()};
 els.width.oninput=e=>{state.calibration.widthMm=+e.target.value||2360;dirty()};
 els.height.oninput=e=>{state.calibration.heightMm=+e.target.value||1143;dirty()};
-$('#newLaunchBtn').onclick=()=>{const id=uid();state.launches.push({id,name:`Lançamento ${state.launches.length+1}`,side:'custom',heading:0,points:[],actions:[],manualActions:[]});state.activeId=id;dirty()};
+$('#newLaunchBtn').onclick=()=>{const id=uid();state.launches.push({id,name:`Lançamento ${state.launches.length+1}`,side:'custom',heading:0,points:[],actions:[],manualActions:[],autoOverrides:{},attachment:{name:'',enabled:false,widthMm:0,lengthMm:0,offsetXmm:0,offsetYmm:0,imageData:'',defaultState:'estendido',states:{recolhido:{enabled:false,widthMm:0,lengthMm:0,offsetXmm:0,offsetYmm:0},aberto:{enabled:true,widthMm:0,lengthMm:0,offsetXmm:0,offsetYmm:0},estendido:{enabled:true,widthMm:0,lengthMm:0,offsetXmm:0,offsetYmm:0}},segmentStates:{}},strategy:{missions:{}}});state.activeId=id;dirty()};
 $('#duplicateLaunchBtn').onclick=()=>{const l=active();const copy=JSON.parse(JSON.stringify(l));copy.id=uid();copy.name=l.name+' — cópia';state.launches.push(copy);state.activeId=copy.id;dirty()};
 
 function actionDefault(type){
@@ -878,7 +966,7 @@ $$('.tab').forEach(t=>t.onclick=()=>{
   $$('.tab').forEach(x=>x.classList.toggle('active',x===t));
   $('#actionsTab').classList.toggle('active',t.dataset.tab==='actions');
   $('#codeTab').classList.toggle('active',t.dataset.tab==='code');
-  $('#robotTab').classList.toggle('active',t.dataset.tab==='robot');$('#attachmentTab').classList.toggle('active',t.dataset.tab==='attachment');$('#collisionTab').classList.toggle('active',t.dataset.tab==='collision');
+  $('#robotTab').classList.toggle('active',t.dataset.tab==='robot');$('#attachmentTab').classList.toggle('active',t.dataset.tab==='attachment');$('#collisionTab').classList.toggle('active',t.dataset.tab==='collision');$('#strategyTab').classList.toggle('active',t.dataset.tab==='strategy');
 });
 $('#copyCodeBtn').onclick=async()=>{await navigator.clipboard.writeText(generateCode());toast('Código copiado.')};
 $('#downloadCodeBtn').onclick=()=>{const blob=new Blob([generateCode()],{type:'text/x-python'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(active().name||'path-honey').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-')+'.py';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};
@@ -887,14 +975,15 @@ function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show'
 function robotSvgSize(){
   return {w:state.robotConfig.widthMm/state.calibration.widthMm*1000,h:state.robotConfig.lengthMm/state.calibration.heightMm*500};
 }
-function setRobotPose(p,heading){
+function setRobotPose(p,heading,segIndex=0){
   if(!p){els.robotLayer.style.display='none';return}
   els.robotLayer.style.display='';const q=pointToSvg(p),s=robotSvgSize();
   els.robotBody.setAttribute('x',-s.w/2);els.robotBody.setAttribute('y',-s.h/2);els.robotBody.setAttribute('width',s.w);els.robotBody.setAttribute('height',s.h);
-  const a=activeAttachment(),aw=(Number(a.widthMm)||0)/state.calibration.widthMm*1000,ah=(Number(a.lengthMm)||0)/state.calibration.heightMm*500,ax=(Number(a.offsetXmm)||0)/state.calibration.widthMm*1000,ay=(Number(a.offsetYmm)||0)/state.calibration.heightMm*500;
-  els.attachmentOutline.setAttribute('x',ax-aw/2);els.attachmentOutline.setAttribute('y',ay-ah/2);els.attachmentOutline.setAttribute('width',a.enabled?aw:0);els.attachmentOutline.setAttribute('height',a.enabled?ah:0);
+  const a=activeAttachment(),ast=attachmentStateForSegment(segIndex),aw=(Number(ast.widthMm)||0)/state.calibration.widthMm*1000,ah=(Number(ast.lengthMm)||0)/state.calibration.heightMm*500,ax=(Number(ast.offsetXmm)||0)/state.calibration.widthMm*1000,ay=(Number(ast.offsetYmm)||0)/state.calibration.heightMm*500;
+  const showAttachment=a.enabled&&ast.enabled!==false;
+  els.attachmentOutline.setAttribute('x',ax-aw/2);els.attachmentOutline.setAttribute('y',ay-ah/2);els.attachmentOutline.setAttribute('width',showAttachment?aw:0);els.attachmentOutline.setAttribute('height',showAttachment?ah:0);
   if(state.robotConfig.baseImageData){els.robotBaseImage.setAttribute('href',state.robotConfig.baseImageData);els.robotBaseImage.setAttribute('x',-s.w/2);els.robotBaseImage.setAttribute('y',-s.h/2);els.robotBaseImage.setAttribute('width',s.w);els.robotBaseImage.setAttribute('height',s.h);els.robotBaseImage.style.display='';}else els.robotBaseImage.style.display='none';
-  if(a.enabled&&a.imageData){els.robotAttachmentImage.setAttribute('href',a.imageData);els.robotAttachmentImage.setAttribute('x',ax-aw/2);els.robotAttachmentImage.setAttribute('y',ay-ah/2);els.robotAttachmentImage.setAttribute('width',aw);els.robotAttachmentImage.setAttribute('height',ah);els.robotAttachmentImage.style.display='';}else els.robotAttachmentImage.style.display='none';
+  if(showAttachment&&a.imageData){els.robotAttachmentImage.setAttribute('href',a.imageData);els.robotAttachmentImage.setAttribute('x',ax-aw/2);els.robotAttachmentImage.setAttribute('y',ay-ah/2);els.robotAttachmentImage.setAttribute('width',aw);els.robotAttachmentImage.setAttribute('height',ah);els.robotAttachmentImage.style.display='';}else els.robotAttachmentImage.style.display='none';
   els.robotLayer.setAttribute('transform',`translate(${q.x} ${q.y}) rotate(${heading+90})`);
 }
 function renderRobotAtStart(){const pts=active().points||[];if(!simulationRunning)setRobotPose(pts[0],Number(active().heading)||0)}
@@ -909,14 +998,14 @@ async function simulate(){
   for(const seg of segs){
     if(token!==simulationToken)break;highlightActionBySegment(seg.index);
     const delta=normAngle(seg.target-heading),h0=heading;
-    if(Math.abs(delta)>1) await rafAnim(clamp(Math.abs(delta)*8,180,800),t=>setRobotPose(pos,h0+delta*t),token);
+    if(Math.abs(delta)>1) await rafAnim(clamp(Math.abs(delta)*8,180,800),t=>setRobotPose(pos,h0+delta*t,seg.index),token);
     heading=seg.target;const p0=seg.a,p1=seg.b;
     const drive={type:'drive',mm:seg.mm,velocity:800};
-    const ok=await rafAnim(clamp(actionTime(drive)*650,350,2200),t=>{pos={x:p0.x+(p1.x-p0.x)*t,y:p0.y+(p1.y-p0.y)*t};setRobotPose(pos,heading)},token);if(!ok)break;
+    const ok=await rafAnim(clamp(actionTime(drive)*650,350,2200),t=>{pos={x:p0.x+(p1.x-p0.x)*t,y:p0.y+(p1.y-p0.y)*t};setRobotPose(pos,heading,seg.index)},token);if(!ok)break;
     for(const a of manualForAnchor(active(),seg.index)){
       if(token!==simulationToken)break;
       const ms=a.type==='wait'?clamp(+a.ms||0,100,1500):300;
-      await rafAnim(ms,()=>setRobotPose(pos,heading),token);
+      await rafAnim(ms,()=>setRobotPose(pos,heading,seg.index),token);
     }
   }
   if(token===simulationToken){simulationRunning=false;els.fieldWrap.classList.remove('simulating');els.simulateBtn.textContent='▶ Simular';$$('.action-card').forEach(c=>c.classList.remove('sim-active'));toast('Simulação concluída.');}
@@ -926,14 +1015,19 @@ els.simulateBtn.onclick=simulate;
 
 
 // V2 — Robô, anexos e colisões
-['attachmentName','attachmentWidth','attachmentLength','attachmentOffsetX','attachmentOffsetY'].forEach(id=>{const el=els[id];if(el)el.oninput=e=>{const map={attachmentName:'name',attachmentWidth:'widthMm',attachmentLength:'lengthMm',attachmentOffsetX:'offsetXmm',attachmentOffsetY:'offsetYmm'};activeAttachment()[map[id]]=id==='attachmentName'?e.target.value:Number(e.target.value)||0;dirty()}});
+['attachmentName','attachmentWidth','attachmentLength','attachmentOffsetX','attachmentOffsetY'].forEach(id=>{const el=els[id];if(el)el.oninput=e=>{const map={attachmentName:'name',attachmentWidth:'widthMm',attachmentLength:'lengthMm',attachmentOffsetX:'offsetXmm',attachmentOffsetY:'offsetYmm'};const a=activeAttachment(),key=map[id],val=id==='attachmentName'?e.target.value:Number(e.target.value)||0;a[key]=val;if(id!=='attachmentName'){a.states ||= {};ATTACHMENT_STATE_NAMES.forEach(n=>a.states[n]||={enabled:n!=='recolhido',widthMm:0,lengthMm:0,offsetXmm:0,offsetYmm:0});if(key==='widthMm'){a.states.estendido.widthMm=val;if(!a.states.aberto.widthMm)a.states.aberto.widthMm=val*.7;if(!a.states.recolhido.widthMm)a.states.recolhido.widthMm=val*.35}if(key==='lengthMm'){a.states.estendido.lengthMm=val;if(!a.states.aberto.lengthMm)a.states.aberto.lengthMm=val*.7;if(!a.states.recolhido.lengthMm)a.states.recolhido.lengthMm=val*.35}if(key==='offsetXmm'){a.states.estendido.offsetXmm=val;if(!a.states.aberto.offsetXmm)a.states.aberto.offsetXmm=val;if(!a.states.recolhido.offsetXmm)a.states.recolhido.offsetXmm=val}if(key==='offsetYmm'){a.states.estendido.offsetYmm=val;if(!a.states.aberto.offsetYmm)a.states.aberto.offsetYmm=val;if(!a.states.recolhido.offsetYmm)a.states.recolhido.offsetYmm=val}}dirty()}});
 if(els.attachmentEnabled)els.attachmentEnabled.onchange=e=>{activeAttachment().enabled=e.target.checked;dirty()};
 const rim=$('#robotImageInput');if(rim)rim.onchange=async e=>{const f=e.target.files?.[0];if(!f)return;state.robotConfig.baseImageData=await compressImage(f);dirty();toast('Foto do robô salva.')};
 const aim=$('#attachmentImageInput');if(aim)aim.onchange=async e=>{const f=e.target.files?.[0];if(!f)return;activeAttachment().imageData=await compressImage(f);dirty();toast('Foto do anexo salva neste lançamento.')};
 const cr=$('#clearRobotImageBtn');if(cr)cr.onclick=()=>{state.robotConfig.baseImageData='';dirty()};const ca=$('#clearAttachmentImageBtn');if(ca)ca.onclick=()=>{activeAttachment().imageData='';dirty()};
 const cm=$('#collisionMargin');if(cm){cm.value=state.collisionConfig.marginMm;cm.oninput=e=>{state.collisionConfig.marginMm=Number(e.target.value)||0;dirty()}};const cw=$('#collisionWarning');if(cw){cw.value=state.collisionConfig.warningMm;cw.oninput=e=>{state.collisionConfig.warningMm=Number(e.target.value)||0;dirty()}};const ce=$('#collisionEnabled');if(ce){ce.checked=!!state.collisionConfig.enabled;ce.onchange=e=>{state.collisionConfig.enabled=e.target.checked;dirty()}};
-let obstacleDraft=null;const markBtn=$('#markMissionBtn');if(markBtn)markBtn.onclick=()=>{state.mode='obstacle';obstacleDraft=null;$('#missionMarkHelp').classList.remove('hidden');toast('Clique em dois cantos opostos da missão no tapete.')};const clearObs=$('#clearMissionsBtn');if(clearObs)clearObs.onclick=()=>{if(confirm('Limpar todas as zonas de missão?')){state.obstacles=[];dirty()}};
-els.fieldWrap.addEventListener('pointerdown',e=>{if(state.mode!=='obstacle'||e.target.closest('circle'))return;e.stopPropagation();const p=eventNorm(e);if(!obstacleDraft){obstacleDraft=p;toast('Primeiro canto marcado. Clique no canto oposto.');return}const x=Math.min(obstacleDraft.x,p.x),y=Math.min(obstacleDraft.y,p.y),w=Math.abs(p.x-obstacleDraft.x),h=Math.abs(p.y-obstacleDraft.y);if(w<.005||h<.005){obstacleDraft=null;toast('Área muito pequena. Tente novamente.');return}const name=prompt('Nome da missão/obstáculo:','Missão '+((state.obstacles||[]).length+1))||'Missão';state.obstacles.push({id:Date.now().toString(36),name,x,y,w,h});obstacleDraft=null;state.mode='route';$('#missionMarkHelp').classList.add('hidden');dirty();toast('Zona de missão adicionada.');},true);
+let obstacleDraftPoints=[];const markBtn=$('#markMissionBtn'),finishMissionBtn=$('#finishMissionBtn'),cancelMissionBtn=$('#cancelMissionBtn');
+function setObstacleUi(activeMode){$('#missionMarkHelp').classList.toggle('hidden',!activeMode);finishMissionBtn?.classList.toggle('hidden',!activeMode);cancelMissionBtn?.classList.toggle('hidden',!activeMode);if(!activeMode&&els.obstacleDraftLayer)els.obstacleDraftLayer.innerHTML='';}
+if(markBtn)markBtn.onclick=()=>{state.mode='obstaclePoly';obstacleDraftPoints=[];setObstacleUi(true);renderObstacles();toast('Clique ao redor da missão. Mínimo 3 vértices.')};
+if(cancelMissionBtn)cancelMissionBtn.onclick=()=>{obstacleDraftPoints=[];state.mode='route';setObstacleUi(false);renderObstacles();toast('Contorno cancelado.')};
+if(finishMissionBtn)finishMissionBtn.onclick=()=>{if(obstacleDraftPoints.length<3){toast('Marque pelo menos 3 vértices.');return}const name=prompt('Nome da missão/obstáculo:','Missão '+((state.obstacles||[]).length+1))||'Missão';state.obstacles.push({id:Date.now().toString(36),name,points:obstacleDraftPoints.map(p=>({...p}))});obstacleDraftPoints=[];state.mode='route';setObstacleUi(false);dirty();toast('Contorno da missão salvo.')};
+const clearObs=$('#clearMissionsBtn');if(clearObs)clearObs.onclick=()=>{if(confirm('Limpar todos os contornos de missão?')){state.obstacles=[];dirty()}};
+els.fieldWrap.addEventListener('pointerdown',e=>{if(state.mode!=='obstaclePoly'||e.target.closest('circle'))return;e.stopPropagation();obstacleDraftPoints.push(eventNorm(e));renderObstacles();toast(`Vértice ${obstacleDraftPoints.length} marcado.`);},true);
 
 const fieldImage=$('#fieldImage');
 fieldImage.addEventListener('error',()=>toast('A imagem embutida do campo não pôde ser carregada.'));

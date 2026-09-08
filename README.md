@@ -1,12 +1,11 @@
-# Path Honey V2.0
+# Path Honey V2.1
 
-Planejador visual de rotas FLL BIOGLOW.
+Planejador visual de rotas para FLL BIOGLOW.
 
-## V2
-- Colisão por contorno do robô + anexo e margem de segurança.
-- Zonas de missão marcáveis diretamente no tapete.
-- Foto superior do robô e foto do anexo por lançamento.
-- Alertas por trecho e sobreposição visual de risco.
-- Configuração de robô, rodas, motores, velocidades e MicroPython mantida.
-
-Deploy: publique `index.html`, `vercel.json` e `README.md` na raiz do repositório.
+Novidades V2.1:
+- contornos poligonais para missões/obstáculos;
+- estados de anexo recolhido / aberto / estendido por trecho;
+- colisão considera o estado do anexo em cada trecho;
+- aba Estratégia com pontuação planejada, confiabilidade, tempo, risco e índice heurístico;
+- salvar/abrir projeto em JSON;
+- compartilhar planejamento por link (sem fotos para manter o link leve).
