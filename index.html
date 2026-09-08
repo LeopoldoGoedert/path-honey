@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0b10" />
+  <title>Path Honey — FLL BIOGLOW</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="bee">⬡</div>
+      <div>
+        <h1>Path Honey</h1>
+        <p>Planejador de rotas • FLL BIOGLOW</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span id="saveState" class="save-state">salvo localmente</span>
+      <button id="installBtn" class="btn ghost hidden">Instalar app</button>
+      <button id="newLaunchBtn" class="btn primary">+ Novo lançamento</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="sidebar left-panel">
+      <section class="panel-section">
+        <div class="section-title-row">
+          <h2>Lançamentos</h2>
+          <button id="duplicateLaunchBtn" class="icon-btn" title="Duplicar lançamento">⧉</button>
+        </div>
+        <div id="launchList" class="launch-list"></div>
+      </section>
+
+      <section class="panel-section compact">
+        <h2>Configuração</h2>
+        <label>Nome
+          <input id="launchName" type="text" />
+        </label>
+        <div class="grid-2">
+          <label>Partida
+            <select id="startSide">
+              <option value="left">Esquerda</option>
+              <option value="right">Direita</option>
+              <option value="custom">Livre</option>
+            </select>
+          </label>
+          <label>Heading inicial
+            <input id="startHeading" type="number" value="0" step="1" />
+          </label>
+        </div>
+        <details>
+          <summary>Calibração do tapete</summary>
+          <div class="grid-2 calibration-grid">
+            <label>Largura (mm)<input id="fieldWidthMm" type="number" min="1000" step="1" /></label>
+            <label>Altura (mm)<input id="fieldHeightMm" type="number" min="500" step="1" /></label>
+          </div>
+          <p class="hint">As dimensões são configuráveis. A imagem oficial é usada como referência visual; ajuste as medidas para a mesa/tapete real da equipe.</p>
+        </details>
+      </section>
+
+      <section class="panel-section compact">
+        <h2>Adicionar ação</h2>
+        <div class="action-buttons">
+          <button data-add="drive" class="action-add">↑ Andar</button>
+          <button data-add="turn" class="action-add">↻ Girar</button>
+          <button data-add="motor" class="action-add">⚙ Garra</button>
+          <button data-add="motor_async" class="action-add">⚡ Garra simult.</button>
+          <button data-add="wait" class="action-add">⏱ Esperar</button>
+          <button data-add="button" class="action-add">◉ Botão</button>
+        </div>
+      </section>
+    </aside>
+
+    <section class="center-stage">
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <button id="routeModeBtn" class="tool active">● Criar rota</button>
+          <button id="moveModeBtn" class="tool">✥ Mover pontos</button>
+          <button id="undoPointBtn" class="tool">↶ Desfazer</button>
+          <button id="clearRouteBtn" class="tool danger-text">Limpar rota</button>
+        </div>
+        <div class="toolbar-group">
+          <button id="routeToActionsBtn" class="btn accent">Gerar ações da rota</button>
+        </div>
+      </div>
+
+      <div class="field-shell">
+        <div id="fieldWrap" class="field-wrap" aria-label="Campo BIOGLOW interativo">
+          <img id="fieldImage" src="assets/bioglow-campo.jpg" alt="Campo oficial BIOGLOW" draggable="false" />
+          <svg id="routeSvg" viewBox="0 0 1000 500" preserveAspectRatio="none" aria-hidden="true">
+            <polyline id="routeLine" points="" />
+            <g id="pointLayer"></g>
+          </svg>
+        </div>
+        <div class="field-legend">
+          <span><i class="dot start"></i> início</span>
+          <span><i class="dot waypoint"></i> waypoint</span>
+          <span><i class="line-sample"></i> rota</span>
+          <span id="cursorCoords">x: — • y: —</span>
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric"><span>Distância</span><strong id="distanceMetric">0 mm</strong></div>
+        <div class="metric"><span>Ações</span><strong id="actionsMetric">0</strong></div>
+        <div class="metric"><span>Tempo estimado</span><strong id="timeMetric">0.0 s</strong></div>
+        <div class="metric"><span>Margem 2:30</span><strong id="marginMetric">150.0 s</strong></div>
+      </div>
+    </section>
+
+    <aside class="sidebar right-panel">
+      <div class="tabs">
+        <button class="tab active" data-tab="actions">Ações</button>
+        <button class="tab" data-tab="code">MicroPython</button>
+      </div>
+
+      <section id="actionsTab" class="tab-content active">
+        <div class="section-title-row sticky-title">
+          <div>
+            <h2>Sequência</h2>
+            <p class="hint">Arraste para reordenar. Clique para editar.</p>
+          </div>
+          <button id="clearActionsBtn" class="icon-btn" title="Limpar ações">⌫</button>
+        </div>
+        <div id="actionList" class="action-list"></div>
+      </section>
+
+      <section id="codeTab" class="tab-content">
+        <div class="code-toolbar">
+          <button id="copyCodeBtn" class="btn primary">Copiar código</button>
+          <button id="downloadCodeBtn" class="btn ghost">Baixar .py</button>
+        </div>
+        <pre id="codePreview" class="code-preview"></pre>
+      </section>
+    </aside>
+  </main>
+
+  <dialog id="actionDialog">
+    <form method="dialog" id="actionForm">
+      <div class="dialog-head">
+        <div>
+          <h3 id="dialogTitle">Editar ação</h3>
+          <p id="dialogSubtitle" class="hint"></p>
+        </div>
+        <button value="cancel" class="icon-btn">✕</button>
+      </div>
+      <div id="dialogFields" class="dialog-fields"></div>
+      <div class="dialog-actions">
+        <button type="button" id="deleteActionBtn" class="btn danger">Excluir</button>
+        <span class="spacer"></span>
+        <button value="cancel" class="btn ghost">Cancelar</button>
+        <button type="submit" value="default" class="btn primary">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
