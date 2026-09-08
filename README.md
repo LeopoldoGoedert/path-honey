@@ -1,10 +1,12 @@
-# Path Honey V1.8.3
+# Path Honey V2.0
 
-Versão clean para deploy no Vercel.
+Planejador visual de rotas FLL BIOGLOW.
 
-Correção principal: barra superior do editor agora usa duas linhas com altura automática, evitando botões cortados ou sobrepostos em telas menores.
+## V2
+- Colisão por contorno do robô + anexo e margem de segurança.
+- Zonas de missão marcáveis diretamente no tapete.
+- Foto superior do robô e foto do anexo por lançamento.
+- Alertas por trecho e sobreposição visual de risco.
+- Configuração de robô, rodas, motores, velocidades e MicroPython mantida.
 
-Arquivos necessários no GitHub:
-- index.html
-- vercel.json
-- README.md
+Deploy: publique `index.html`, `vercel.json` e `README.md` na raiz do repositório.
