@@ -1,13 +1,11 @@
-# Path Honey V1.8
+# Path Honey v1.8.2 — deploy clean
 
-Planejador visual de rotas para FLL BIOGLOW.
+Versão de publicação em arquivo único.
 
-## Novidade V1.8
-- Aba **Robô** para configurar largura e comprimento.
-- Diâmetro da roda e circunferência calculada automaticamente.
-- Portas dos motores de tração esquerda/direita e dois acessórios.
-- Velocidades padrão: reta lenta, normal, rápida, giro máximo/mínimo e acessório.
-- Configurações alimentam o desenho do robô, cálculo de tempo, novas ações e MicroPython gerado.
-- Ações de rota continuam editáveis individualmente.
+Para GitHub/Vercel, mantenha na raiz apenas:
+- index.html
+- vercel.json
+- README.md
 
-Abra `index.html` ou publique a pasta em hospedagem estática/Vercel.
+O index.html já contém CSS, JavaScript e a imagem do campo BIOGLOW embutidos.
+Não usa service worker nem pasta assets, evitando cache antigo e arquivos faltantes.
