@@ -1,28 +1,13 @@
-# Path Honey V1
+# Path Honey V1.8
 
-PWA estático para planejamento visual de rotas da FLL BIOGLOW e geração de MicroPython no padrão da Honey Flowers.
+Planejador visual de rotas para FLL BIOGLOW.
 
-## O que já funciona
-- Campo BIOGLOW como fundo interativo.
-- Waypoints clicáveis e arrastáveis.
-- Conversão de rota em ações `giro_1` + `andar_1`.
-- Ações manuais: andar, girar, garra, garra simultânea, espera e botão.
-- Lançamentos 1–7 pré-carregados a partir dos programas enviados.
-- Geração e download de `.py`.
-- Salvamento local no navegador.
-- PWA/offline após a primeira abertura.
+## Novidade V1.8
+- Aba **Robô** para configurar largura e comprimento.
+- Diâmetro da roda e circunferência calculada automaticamente.
+- Portas dos motores de tração esquerda/direita e dois acessórios.
+- Velocidades padrão: reta lenta, normal, rápida, giro máximo/mínimo e acessório.
+- Configurações alimentam o desenho do robô, cálculo de tempo, novas ações e MicroPython gerado.
+- Ações de rota continuam editáveis individualmente.
 
-## Rodar localmente
-Na pasta do projeto:
-
-```bash
-python -m http.server 8080
-```
-
-Abra `http://localhost:8080`.
-
-## Publicar
-É um site estático: pode ser publicado diretamente no Vercel, Netlify, GitHub Pages ou servidor local.
-
-## Observação de calibração
-A imagem oficial é referência visual. As dimensões do campo são configuráveis no painel para que a equipe calibre distância/ângulo com o tapete físico.
+Abra `index.html` ou publique a pasta em hospedagem estática/Vercel.
